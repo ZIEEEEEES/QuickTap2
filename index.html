@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuickTap - Tori Cafeteria</title>
+  <link rel="stylesheet" href="global-styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-init.js"></script>
+  <script src="staff-auth.js"></script>
+  <style>
+    /* Staff-only landing page design - MINIMALIST PREMIUM */
+    body { 
+      background: radial-gradient(circle at center, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.8) 100%), url('images/background.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow: hidden;
+    }
+
+    .container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 1200px;
+      padding: 20px;
+      position: relative;
+    }
+
+    .brand {
+      position: fixed;
+      top: 40px;
+      left: 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 10;
+      animation: fadeInUp 1s ease-out forwards;
+    }
+
+    .brand-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      height: 42px;
+      width: auto;
+      border-radius: 6px;
+      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
+    }
+
+    .logo { 
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #ffffff;
+      text-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+
+    .tagline {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.7);
+      font-weight: 500;
+      letter-spacing: 0.8px;
+      margin-top: -8px;
+      padding-left: 2px;
+      text-transform: uppercase;
+    }
+
+    .auth-form {
+      background: rgba(248, 244, 225, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: 48px;
+      border-radius: 32px;
+      box-shadow: 0 40px 100px rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+      width: 100%;
+      max-width: 440px;
+      animation: formIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes formIn {
+      from { transform: translateY(40px) scale(0.95); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+
+    .form-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--coffee-dark);
+      text-align: center;
+      letter-spacing: -0.5px;
+    }
+
+    .form-subtitle {
+      font-size: 13px;
+      text-align: center;
+      color: var(--coffee-medium);
+      margin-top: -24px;
+      opacity: 0.8;
+    }
+
+    .staff-section {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .staff-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--coffee-medium);
+      text-align: center;
+      opacity: 0.6;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .staff-label::before,
+    .staff-label::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: rgba(116, 81, 45, 0.15);
+    }
+
+    .staff-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .staff-input {
+      width: 100%;
+      padding: 16px 20px;
+      font-size: 14px;
+      border: 1.5px solid rgba(116, 81, 45, 0.1);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.8);
+      color: var(--text-dark);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-sizing: border-box;
+    }
+
+    .staff-input:focus {
+      outline: none;
+      border-color: var(--accent-warm);
+      background: #ffffff;
+      box-shadow: 0 8px 24px rgba(175, 143, 111, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .staff-btn {
+      padding: 18px;
+      background: #74512D;
+      color: #ffffff;
+      border: none;
+      border-radius: 16px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      margin-top: 8px;
+    }
+
+    .staff-btn:hover {
+      background: #543310;
+      transform: translateY(-3px);
+      box-shadow: 0 12px 28px rgba(84, 51, 16, 0.25);
+    }
+
+    .staff-btn:active {
+      transform: translateY(-1px);
+    }
+
+    .staff-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .message {
+      text-align: center;
+      padding: 14px;
+      border-radius: 14px;
+      font-size: 13px;
+      font-weight: 600;
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .message.error {
+      background: rgba(217, 83, 79, 0.1);
+      color: var(--danger);
+      display: block;
+    }
+
+    .message.success {
+      background: rgba(95, 184, 120, 0.1);
+      color: var(--success);
+      display: block;
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+      body {
+        align-items: flex-start;
+        padding: 100px 20px 40px;
+        overflow-y: auto;
+      }
+
+      .brand {
+        top: 30px;
+        left: 0;
+        width: 100%;
+        align-items: center;
+        text-align: center;
+      }
+
+      .auth-form {
+        padding: 32px 24px;
+      }
+    }
+
+    @keyframes fadeInUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .inactivity-banner {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 10000;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding: 14px 48px 14px 20px;
+      background: linear-gradient(135deg, #543310 0%, #74512D 100%);
+      color: #F8F4E1;
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.45;
+      text-align: center;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      animation: bannerSlide 0.45s ease-out;
+    }
+
+    .inactivity-banner.visible {
+      display: flex;
+    }
+
+    @keyframes bannerSlide {
+      from { transform: translateY(-100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .inactivity-banner .inactivity-banner-text {
+      max-width: 640px;
+    }
+
+    .inactivity-banner .inactivity-banner-close {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      width: 36px;
+      height: 36px;
+      border: none;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.12);
+      color: #F8F4E1;
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .inactivity-banner .inactivity-banner-close:hover {
+      background: rgba(255, 255, 255, 0.22);
+    }
+
+    @media (max-width: 768px) {
+      .inactivity-banner {
+        padding: 48px 16px 16px;
+        font-size: 14px;
+      }
+      .inactivity-banner .inactivity-banner-close {
+        top: 8px;
+        right: 8px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="inactivityBanner" class="inactivity-banner" role="alert" aria-live="polite">
+    <p class="inactivity-banner-text">You were signed out for inactivity. Sign in again to continue working in the admin dashboard.</p>
+    <button type="button" class="inactivity-banner-close" onclick="dismissInactivityBanner()" aria-label="Dismiss">&times;</button>
+  </div>
+
+  <div class="brand">
+    <div class="brand-header">
+      <img src="images/quicktap_logo.png" alt="QuickTap Logo" class="brand-logo">
+      <div class="logo">QuickTap</div>
+    </div>
+    <div class="tagline">Find. Tap. Get It Done!</div>
+  </div>
+
+  <div class="container">
+    <div class="auth-form">
+      <div class="form-title">Staff Portal</div>
+      <div class="form-subtitle">Login with your staff ID and password</div>
+      <div id="msg" class="message"></div>
+
+      <div class="staff-section">
+        <label class="staff-label">Staff Access</label>
+        <div id="staffSetupForm" class="staff-form" style="display: none;">
+          <input id="staffSetupId" class="staff-input" placeholder="ID Number" type="text">
+          <input id="staffSetupName" class="staff-input" placeholder="Full Name" type="text">
+          <input id="staffSetupPassword" class="staff-input" placeholder="Password (min 6 chars)" type="password">
+          <button class="staff-btn" onclick="submitStaffSetup()">Create System Admin</button>
+          <span class="staff-setup-note">First-time setup: create the system admin account.</span>
+        </div>
+        <div id="staffLoginForm" class="staff-form">
+          <div class="staff-row">
+            <input id="staffIdInput" class="staff-input" placeholder="ID Number" type="text">
+            <input id="staffPasswordInput" class="staff-input" placeholder="Password" type="password">
+          </div>
+          <button class="staff-btn" onclick="submitStaffLogin()">Staff Login</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  function dismissInactivityBanner() {
+    const el = document.getElementById('inactivityBanner');
+    if (el) el.classList.remove('visible');
+  }
+
+  function showInactivityLogoutBanner() {
+    const el = document.getElementById('inactivityBanner');
+    if (el) el.classList.add('visible');
+  }
+
+  function showMessage(msg, type) {
+    const msgEl = document.getElementById('msg');
+    msgEl.textContent = msg;
+    msgEl.className = 'message ' + type;
+    setTimeout(() => { msgEl.className = 'message'; }, 3500);
+  }
+
+  function getStaffRedirectHref(role) {
+    if (role === 'system_admin' || role === 'admin') return 'staffs/admin/admin.html';
+    if (role === 'cashier') return 'staffs/cashier/cashier.html';
+    if (role === 'kitchen_staff') return 'staffs/kitchen/kitchen.html';
+    return null;
+  }
+
+  async function initStaffForm() {
+    if (!window.getDB || !window.needsStaffSetup) return;
+    if (!window.dbReady) { setTimeout(initStaffForm, 200); return; }
+    const db = getDB();
+    if (!db) { setTimeout(initStaffForm, 200); return; }
+    const needsSetup = await needsStaffSetup();
+    const setupForm = document.getElementById('staffSetupForm');
+    const loginForm = document.getElementById('staffLoginForm');
+    if (setupForm && loginForm) {
+      setupForm.style.display = needsSetup ? 'flex' : 'none';
+      loginForm.style.display = needsSetup ? 'none' : 'flex';
+    }
+  }
+
+  async function submitStaffSetup() {
+    const id = document.getElementById('staffSetupId').value.trim();
+    const name = document.getElementById('staffSetupName').value.trim();
+    const pwd = document.getElementById('staffSetupPassword').value;
+    if (!id || !name || !pwd) {
+      showMessage('Please fill ID number, full name, and password', 'error');
+      return;
+    }
+    if (pwd.length < 6) {
+      showMessage('Password must be at least 6 characters', 'error');
+      return;
+    }
+    try {
+      await staffRegisterSystemAdmin(id, name, pwd);
+      showMessage('System admin created. Redirecting to login...', 'success');
+      setTimeout(() => location.reload(), 1000);
+    } catch (e) {
+      showMessage(e.message || 'Setup failed', 'error');
+    }
+  }
+
+  async function submitStaffLogin() {
+    const id = document.getElementById('staffIdInput').value.trim();
+    const pwd = document.getElementById('staffPasswordInput').value;
+    if (!id || !pwd) {
+      showMessage('Please enter ID number and password', 'error');
+      return;
+    }
+    try {
+      const r = await staffLogin(id, pwd);
+      if (!r.ok) {
+        showMessage(r.message || 'Login failed', 'error');
+        return;
+      }
+      const role = r.staff.role;
+      const href = getStaffRedirectHref(role);
+      if (href) {
+        window.location.replace(href);
+      } else {
+        showMessage('No access configured for your role', 'error');
+        clearStaffSession();
+      }
+    } catch (e) {
+      showMessage(e.message || 'Login failed', 'error');
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // If already logged in, keep staff out of the index page
+    try {
+      const sess = window.getStaffSession ? getStaffSession() : null;
+      const role = sess?.role || null;
+      const href = role ? getStaffRedirectHref(role) : null;
+      if (href) {
+        window.location.replace(href);
+        return;
+      }
+    } catch (_) {}
+
+    initStaffForm();
+    const staffIdEl = document.getElementById('staffIdInput');
+    const staffPwdEl = document.getElementById('staffPasswordInput');
+    if (staffIdEl) staffIdEl.addEventListener('keypress', (e) => { if (e.key === 'Enter') submitStaffLogin(); });
+    if (staffPwdEl) staffPwdEl.addEventListener('keypress', (e) => { if (e.key === 'Enter') submitStaffLogin(); });
+    const params = new URLSearchParams(window.location.search);
+    const hadInactivityLogout = params.get('logout') === 'inactivity';
+    const errorMsg = params.get('error');
+    if (hadInactivityLogout) showInactivityLogoutBanner();
+    if (errorMsg) showMessage(decodeURIComponent(errorMsg), 'error');
+    if (hadInactivityLogout || errorMsg) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+  });
+</script>
+</body>
+</html>

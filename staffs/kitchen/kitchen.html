@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kitchen Dashboard</title>
+    <link rel="stylesheet" href="../../global-styles.css">
+    <link rel="stylesheet" href="./styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../supabase-init.js"></script>
+    <script src="../../staff-auth.js"></script>
+    <script>
+      (function() {
+        function check() {
+          if (typeof canAccessKitchen !== 'function') return setTimeout(check, 50);
+          if (!canAccessKitchen() || !isStaffLoggedIn()) {
+            location.replace(getStaffPortalIndexHref() + '?error=' + encodeURIComponent('Please log in with kitchen access'));
+            return;
+          }
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', check);
+        else check();
+      })();
+    </script>
+</head>
+<body>
+    <div class="kitchen-topbar">
+        <h1>Kitchen Dashboard</h1>
+        <button onclick="staffLogout()" class="kitchen-logout-btn">Logout</button>
+    </div>
+    <div id="statusMessage"></div>
+
+    <div class="kitchen-shell">
+        <div class="kitchen-cards-grid" id="kitchenCardsGrid">
+            <!-- Cards injected by JS -->
+        </div>
+    </div>
+
+    <script src="./kitchen.js"></script>
+</body>
+</html>
