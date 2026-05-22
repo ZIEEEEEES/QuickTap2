@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="../../global-styles.css?v=1.1">
+  <link rel="stylesheet" href="styles.css?v=1.1">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../supabase-init.js"></script>
+  <script src="../../staff-auth.js"></script>
+  <script>
+    (function() {
+      function check() {
+        if (typeof canAccessAdmin !== 'function') return setTimeout(check, 50);
+        if (!canAccessAdmin() || !isStaffLoggedIn()) {
+          location.replace(getStaffPortalIndexHref() + '?error=' + encodeURIComponent('Please log in with admin access'));
+          return;
+        }
+      }
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', check);
+      else check();
+    })();
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body style="margin: 0; padding: 0; overflow: hidden;">
+  <div class="admin-wrapper" style="display: flex; height: 100vh; width: 100vw; overflow: hidden;">
+    <aside class="sidebar collapsed">
+      <div class="sidebar-header">
+        <div class="logo-group">
+          <img src="../../images/LOGO.png" alt="Logo" class="sidebar-logo">
+          <!-- Removed sidebar toggle icon -->
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <button onclick="showPage('analytics')" class="nav-item active" data-page="analytics">
+          <img src="admin_icon/admin_ic_1.png" alt="Dashboard" class="icon-img selected">
+          <img src="admin_icon/admin_ic_1_neu.png" alt="Dashboard" class="icon-img unselected">
+          <span class="label">Dashboard</span>
+        </button>
+        <button onclick="showPage('menu')" class="nav-item" data-page="menu">
+          <img src="admin_icon/admin_ic_2.png" alt="Products" class="icon-img selected">
+          <img src="admin_icon/admin_ic_2_neu.png" alt="Products" class="icon-img unselected">
+          <span class="label">Products</span>
+        </button>
+        <button onclick="showPage('promos')" class="nav-item" data-page="promos">
+          <img src="admin_icon/admin_ic_3.png" alt="Marketing" class="icon-img selected">
+          <img src="admin_icon/admin_ic_3_neu.png" alt="Marketing" class="icon-img unselected">
+          <span class="label">Marketing</span>
+        </button>
+        <button onclick="showPage('bookings')" class="nav-item" data-page="bookings">
+          <img src="admin_icon/admin_ic_4.png" alt="Reservations" class="icon-img selected">
+          <img src="admin_icon/admin_ic_4_neu.png" alt="Reservations" class="icon-img unselected">
+          <span class="label">Reservations</span>
+        </button>
+        <button onclick="showPage('staff')" class="nav-item" data-page="staff">
+          <img src="admin_icon/admin_ic_5.png" alt="Staffs" class="icon-img selected">
+          <img src="admin_icon/admin_ic_5_neu.png" alt="Staffs" class="icon-img unselected">
+          <span class="label">Staffs</span>
+        </button>
+        <button onclick="showPage('settings')" class="nav-item" data-page="settings">
+          <img src="admin_icon/admin_ic_6.png" alt="Settings" class="icon-img selected">
+          <img src="admin_icon/admin_ic_6_neu.png" alt="Settings" class="icon-img unselected">
+          <span class="label">Settings</span>
+        </button>
+      </nav>
+      <div class="sidebar-footer">
+        <button onclick="staffLogout()" class="logout-circle-btn">
+          <img src="../../images/Logout_ic.png" alt="Logout" class="logout-icon">
+          <span class="label">Logout</span>
+        </button>
+      </div>
+    </aside>
+
+    <div class="content-overlay"></div>
+
+    <main class="main-content" style="flex: 1; height: 100vh; overflow-y: auto; background-color: #f4f6f8; padding: 40px;">
+      <div id="statusMessage"></div>
+      <div id="promoStatusMessage"></div>
+      <div id="staffMessage"></div>
+      <div id="settingsMessage"></div>
+      
+      <!-- STAFF MANAGEMENT PAGE (Staffs) -->
+      <div id="staff" class="page" style="display:none">
+        <div class="staff-tabs">
+          <button class="staff-tab active" onclick="switchStaffTab('active')">Active</button>
+          <button class="staff-tab" onclick="switchStaffTab('archive')">Archive</button>
+          <button class="staff-tab" onclick="switchStaffTab('monitor')">Monitor</button>
+        </div>
+
+        <div id="activeStaffPanel" class="staff-panel">
+          <div class="staff-list-container">
+            <div class="staff-list-header">
+              <div class="header-icons">
+                <button class="staff-type-icon-btn active" onclick="filterStaffRole('all', this)" title="All roles">All</button>
+                <button class="staff-type-icon-btn staff-admin-icon-btn" onclick="filterStaffRole('admin', this)" title="Admins"><img src="admin_icon/admin_staffs.png" alt="admin"></button>
+                <button class="staff-type-icon-btn" onclick="filterStaffRole('cashier', this)" title="Cashiers"><img src="admin_icon/cashier_staffs.png" alt="cashier"></button>
+                <button class="staff-type-icon-btn" onclick="filterStaffRole('kitchen_staff', this)" title="Kitchen"><img src="admin_icon/kitchen_staffs.png" alt="kitchen"></button>
+              </div>
+            </div>
+            <table class="staff-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Details</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="staffListContainer">
+                <!-- Staff items will be injected here -->
+              </tbody>
+            </table>
+            <button class="btn-primary add-user-btn" onclick="openAddUserModal()">ADD USER</button>
+          </div>
+        </div>
+
+        <div id="archiveStaffPanel" class="staff-panel" style="display:none">
+          <div class="staff-list-container">
+            <div class="staff-list-header">
+              <div class="header-icons">
+                <button class="staff-type-icon-btn active" onclick="filterArchivedStaffRole('all', this)" title="All roles">All</button>
+                <button class="staff-type-icon-btn staff-admin-icon-btn" onclick="filterArchivedStaffRole('admin', this)" title="Admins"><img src="admin_icon/admin_staffs.png" alt="admin"></button>
+                <button class="staff-type-icon-btn" onclick="filterArchivedStaffRole('cashier', this)" title="Cashiers"><img src="admin_icon/cashier_staffs.png" alt="cashier"></button>
+                <button class="staff-type-icon-btn" onclick="filterArchivedStaffRole('kitchen_staff', this)" title="Kitchen"><img src="admin_icon/kitchen_staffs.png" alt="kitchen"></button>
+              </div>
+            </div>
+             <table class="staff-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Details</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="archivedStaffList"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="monitorStaffPanel" class="staff-panel" style="display:none">
+          <div class="monitor-controls">
+            <select id="monitorAdminSelect" class="monitor-select" onchange="loadAdminLogs()">
+              <option value="admin">Admin</option>
+              <option value="cashier">Cashier</option>
+              <option value="kitchen_staff">Kitchen</option>
+            </select>
+            <input type="date" id="monitorStartDate" class="monitor-date" onchange="loadAdminLogs()">
+            <input type="date" id="monitorEndDate" class="monitor-date" onchange="loadAdminLogs()">
+          </div>
+          <div class="monitor-table-container">
+            <table class="monitor-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>User</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody id="staffAdminLogsBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Add User Modal -->
+        <div id="addUserModal" class="admin-modal" style="display:none">
+          <div class="modal-content staff-form-modal">
+            <span class="close-modal" onclick="closeAddUserModal()">&times;</span>
+            <div class="staff-form-layout">
+              <div class="staff-form-inputs">
+                <div class="form-group">
+                  <input type="text" id="regStaffFirstName" placeholder="First Name" class="staff-input">
+                </div>
+                <div class="form-group">
+                  <input type="text" id="regStaffLastName" placeholder="Last Name" class="staff-input">
+                </div>
+                <div class="form-group">
+                  <input type="text" id="regStaffId" placeholder="User ID" class="staff-input">
+                </div>
+                <div class="form-group">
+                  <input type="password" id="regStaffPassword" placeholder="Password" class="staff-input">
+                </div>
+                <div class="form-group">
+                  <select id="regStaffRole" class="staff-input staff-select">
+                    <option value="" disabled selected>Role</option>
+                    <option value="admin">Admin</option>
+                    <option value="cashier">Cashier</option>
+                    <option value="kitchen_staff">Kitchen Staff</option>
+                  </select>
+                </div>
+                <div class="form-actions-row">
+                  <button class="btn-secondary" onclick="closeAddUserModal()">Cancel</button>
+                  <button class="btn-primary" onclick="registerStaffSubmit()">Save</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MONITORINGS PAGE (Admin Logs + Cashier Transactions) -->
+      <div id="monitorings" class="page" style="display:none">
+        <div class="page-header">
+          <h2>Monitorings</h2>
+          <p class="description">Review system activity and transaction logs.</p>
+        </div>
+        
+        <nav class="monitorings-tabs">
+          <button onclick="showMonitoringsTab('adminLogs')" id="monTabAdminLogs" class="mon-tab active">Admin Logs</button>
+          <button onclick="showMonitoringsTab('cashier')" id="monTabCashier" class="mon-tab">Cashier Transactions</button>
+        </nav>
+
+        <div id="monitoringsAdminLogs" class="monitorings-panel">
+          <div class="form-section" style="margin-bottom: 16px;">
+            <div class="form-row" style="flex-wrap: wrap; gap: 12px; align-items: center;">
+              <label style="font-weight:600; color: var(--coffee-dark);">Admin:</label>
+              <select id="adminLogsUser" onchange="loadAdminLogs()" class="form-control" style="max-width: 220px;">
+                <option value="">All Admins</option>
+              </select>
+              <input type="date" id="adminLogsStart" onchange="loadAdminLogs()" placeholder="00/00/0000">
+              <input type="date" id="adminLogsEnd" onchange="loadAdminLogs()" placeholder="00/00/0000">
+              <button onclick="loadAdminLogs()" class="btn-secondary">Refresh</button>
+            </div>
+          </div>
+          <div id="adminLogsContainer"></div>
+        </div>
+
+        <div id="monitoringsCashier" class="monitorings-panel" style="display:none;">
+          <div class="form-section" style="margin-bottom: 16px;">
+            <div class="form-row" style="flex-wrap: wrap; gap: 12px; align-items: center;">
+              <label style="font-weight:600; color: var(--coffee-dark);">Period:</label>
+              <select id="cashierMonitorRange" onchange="applyCashierMonitorRange()" class="form-control" style="max-width: 160px;">
+                <option value="daily" selected>Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+              </select>
+              <label style="font-weight:600; color: var(--coffee-dark);">Cashier:</label>
+              <select id="cashierMonitorUser" onchange="loadCashierMonitoring()" class="form-control" style="max-width: 220px;">
+                <option value="">All Cashiers</option>
+              </select>
+              <input type="date" id="cashierMonitorStart" onchange="loadCashierMonitoring()" placeholder="00/00/0000">
+              <input type="date" id="cashierMonitorEnd" onchange="loadCashierMonitoring()" placeholder="00/00/0000">
+              <button onclick="loadCashierMonitoring()" class="btn-secondary">Refresh</button>
+            </div>
+          </div>
+          <div id="cashierMonitorSummary" style="margin-bottom:16px;"></div>
+          <div id="cashierMonitorDaily" style="margin-bottom:16px;"></div>
+          <div id="cashierMonitorContainer"></div>
+        </div>
+      </div>
+
+      <!-- SETTINGS PAGE (Settings) -->
+      <div id="settings" class="page" style="display:none">
+        <div class="settings-layout">
+          <div class="qr-setup-card">
+            <h2 class="chart-title">Active QR Code</h2>
+            <div class="qr-form">
+              <div class="form-group">
+                <input type="text" id="qrFileName" placeholder="File" class="settings-input" readonly onclick="document.getElementById('adminQrCode').click()">
+                <input type="file" id="adminQrCode" accept="image/*" style="display:none" onchange="previewAdminQr(this)">
+              </div>
+              <button class="btn-primary qr-save-btn" onclick="savePaymentSettings()">Save</button>
+            </div>
+            <div class="coffee-sketch-settings">☕</div>
+          </div>
+
+          <div class="qr-preview-card">
+            <h2 class="chart-title">Preview</h2>
+            <div class="qr-preview-container">
+              <img id="adminQrPreview" src="" alt="QR Code Preview" style="display:none;">
+              <div id="adminQrPlaceholder" class="qr-placeholder">
+                <span class="qr-icon">⬛</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MENU MANAGEMENT PAGE (Renamed to Products) -->
+      <div id="menu" class="page" style="display:none">
+        <div class="products-header">
+          <div class="category-filters" id="categoryTabs">
+            <button class="cat-pill active" onclick="filterMenu('all', false)">All</button>
+            <button class="cat-pill" onclick="filterMenu('Coffee', false)">Coffee</button>
+            <button class="cat-pill" onclick="filterMenu('Non-coffee', false)">Non-coffee</button>
+            <button class="cat-pill" onclick="filterMenu('Frappe', false)">Frappe</button>
+            <button class="cat-pill" onclick="filterMenu('Soda', false)">Soda</button>
+            <button class="cat-pill" onclick="filterMenu('Pastries', false)">Pastries</button>
+            <button class="cat-pill" onclick="filterMenu('archived', true)">Archived</button>
+          </div>
+          <div class="products-actions">
+            <div class="search-container">
+              <input type="text" id="menuSearch" placeholder="Search..." oninput="filterMenuBySearch()">
+            </div>
+            <button onclick="openAddProductModal()" class="btn-primary add-product-btn">ADD PRODUCT</button>
+          </div>
+        </div>
+
+        <!-- Product List grid -->
+        <div id="menuList" class="products-grid"></div>
+
+        <!-- The Redesigned Add/Edit Product Modal -->
+        <div id="addProductModal" class="admin-modal" style="display:none">
+          <div class="modal-content product-edit-modal">
+            <span class="close-modal" onclick="closeProductModal()">&times;</span>
+            
+            <div class="product-edit-layout">
+              <!-- Left Panel: Photo and Prices Preview -->
+              <div class="edit-left-panel">
+                <div class="product-photo-display">
+                  <img id="previewImage" src="" alt="Product" style="display:none;">
+                  <div id="previewNoImage" class="upload-placeholder">
+                    <span>📷</span>
+                  </div>
+                </div>
+                
+                <div class="prices-list-container">
+                  <h3 class="prices-title">Prices:</h3>
+                  <div id="modalPricesList" class="modal-prices-list">
+                    <!-- Prices like "P 60.00 16oz" will be injected here -->
+                  </div>
+                </div>
+              </div>
+
+              <!-- Middle Vertical Buttons -->
+              <div class="edit-buttons-middle">
+                <button class="v-btn" onclick="document.getElementById('product_photo').click()">
+                  Change Photo
+                </button>
+              </div>
+
+              <!-- Right Panel: Product Details Form -->
+              <div class="edit-right-panel">
+                <input type="hidden" id="editDocId">
+                <input type="hidden" id="name"> 
+                <input type="hidden" id="category_id"> 
+                <input type="file" id="product_photo" accept="image/*" style="display:none" onchange="previewImage(this)">
+
+                <div class="form-group">
+                  <label>Product Name:</label>
+                  <input type="text" id="productName" placeholder="Enter product name...">
+                </div>
+                <div class="form-group">
+                  <label>Category:</label>
+                  <select id="productCategory">
+                    <option value="Coffee">Coffee</option>
+                    <option value="Non-coffee">Non-coffee</option>
+                    <option value="Frappe">Frappe</option>
+                    <option value="Soda">Soda</option>
+                    <option value="Pastries">Pastries</option>
+                  </select>
+                </div>
+                <div class="form-group description-group">
+                  <label>Description:</label>
+                  <div class="textarea-wrapper">
+                    <textarea id="description" placeholder="Enter description..."></textarea>
+                    <span class="edit-icon-small">✎</span>
+                  </div>
+                </div>
+
+                <div class="form-group size-price-group">
+                  <div class="size-price-header">
+                    <label>Size & Price:</label>
+                    <button type="button" class="btn-add-variant" onclick="addNewVariantRow()">+ Add Size</button>
+                  </div>
+                  <div id="pricesEditList" class="prices-edit-list"></div>
+                </div>
+
+                <div class="modal-action-buttons">
+                  <button class="btn-modal-cancel" onclick="closeProductModal()">Cancel</button>
+                  <button id="saveProductBtn" class="btn-modal-save" onclick="saveProduct()">Save</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+  <!-- MARKETING PAGE (Promos) -->
+  <div id="promos" class="page" style="display:none">
+    <div class="marketing-header">
+      <h2 class="section-title">Active Promos</h2>
+      <div id="promoList" class="promo-horizontal-list">
+        <!-- Promo cards will be injected here -->
+        <div class="promo-add-card" onclick="openPromoModal()">
+          <span>+</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- The Add/Edit Promo Modal -->
+    <div id="promoModal" class="admin-modal" style="display:none">
+      <div class="modal-content promo-form-modal">
+        <span class="close-modal" onclick="closePromoModal()">&times;</span>
+        <input type="hidden" id="promoEditId">
+        <div class="promo-form-layout">
+          <div class="form-photo-section">
+            <div class="promo-photo-upload" onclick="document.getElementById('promo_photo').click()">
+              <img id="promoPreviewImage" src="" alt="Promo Preview" style="display:none;">
+              <div id="promoPreviewNoImage" class="upload-placeholder">
+                <div class="landscape-placeholder">
+                  <span class="icon">🖼️</span>
+                </div>
+              </div>
+            </div>
+            <input type="file" id="promo_photo" accept="image/*" style="display:none" onchange="previewPromoImage(this)">
+            <div class="promo-preview-details">
+               <h2>Description:</h2>
+               <p id="previewPromoDescription">No description available.</p>
+               <p id="previewPromoValidation">Validation Date:</p>
+            </div>
+          </div>
+          <div class="form-details-section">
+            <div class="form-group">
+              <label>Description:</label>
+              <div class="textarea-wrapper">
+                <textarea id="promoContent" rows="6" oninput="updatePromoPreview()"></textarea>
+                <span class="edit-icon-small">✎</span>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Valid From:</label>
+                <input type="date" id="promoFrom" onchange="updatePromoPreview()">
+              </div>
+              <div class="form-group">
+                <label>Valid Until:</label>
+                <input type="date" id="promoUntil" onchange="updatePromoPreview()">
+              </div>
+            </div>
+            <div class="form-actions-row">
+              <button id="addPromoBtn" class="btn-primary promo-save-btn" onclick="addPromoSubmit()">Save</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESERVATIONS PAGE (Bookings) -->
+  <div id="bookings" class="page" style="display:none">
+    <div class="reservations-layout">
+      <!-- Left Panel: Incoming Requests -->
+      <div class="incoming-requests-panel">
+        <h2 class="section-title" id="requestsPanelTitle">Reservations</h2>
+        <div class="request-status-tabs">
+          <button class="request-status-tab active" onclick="switchRequestStatus('requests')">Requests</button>
+          <button class="request-status-tab" onclick="switchRequestStatus('accepted')">Accepted</button>
+        </div>
+        <div class="request-tabs">
+          <button class="request-tab active" onclick="switchRequestTab('booking')">Bookings</button>
+          <button class="request-tab" onclick="switchRequestTab('preorder')">Preorders</button>
+        </div>
+        <div id="pendingRequestsList" class="requests-list">
+          <!-- Request cards will be injected here -->
+          <div class="empty-requests">
+            <div class="coffee-sketch-small">☕</div>
+            <p>No incoming requests</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel: Calendar View -->
+      <div class="calendar-panel">
+        <div class="calendar-header">
+          <div class="view-tabs">
+            <button class="view-tab" onclick="switchCalendarView('day')">By Day</button>
+            <button class="view-tab active" onclick="switchCalendarView('month')">By Month</button>
+          </div>
+          <h2 id="currentMonthYear">March 2026</h2>
+          <div class="calendar-nav">
+            <button onclick="prevMonth()">&lt;</button>
+            <button onclick="nextMonth()">&gt;</button>
+          </div>
+        </div>
+        <div id="calendarContainer" class="calendar-grid">
+          <!-- Calendar days will be injected here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Modals for Reservations -->
+    <div id="rejectModal" class="admin-modal" style="display:none">
+      <div class="modal-content rejection-modal">
+        <span class="close-modal" onclick="closeRejectModal()">&times;</span>
+        <h2 class="modal-title">Rejection Confirmation</h2>
+        <input type="hidden" id="rejectBookingId">
+        <input type="hidden" id="rejectSource" value="bookings">
+        <div class="rejection-reasons">
+          <label class="radio-item"><input type="radio" name="rejectReason" value="fully_booked" onchange="updateRejectReason()"> Fully Booked</label>
+          <label class="radio-item"><input type="radio" name="rejectReason" value="maintenance" onchange="updateRejectReason()"> Under Maintenance</label>
+          <label class="radio-item"><input type="radio" name="rejectReason" value="event" onchange="updateRejectReason()"> Private Event</label>
+          <label class="radio-item"><input type="radio" name="rejectReason" value="other" onchange="updateRejectReason()"> Others: <input type="text" id="rejectReasonOther" style="display:none;"></label>
+        </div>
+        <button class="btn-primary modal-save-btn" onclick="confirmReject()">Save</button>
+      </div>
+    </div>
+
+    <div id="rescheduleModal" class="admin-modal" style="display:none">
+      <div class="modal-content reschedule-modal">
+        <span class="close-modal" onclick="closeRescheduleModal()">&times;</span>
+        <h2 class="modal-title">Reschedule</h2>
+        <input type="hidden" id="rescheduleBookingId">
+        <div class="reschedule-form">
+          <div class="form-group">
+            <label>Date:</label>
+            <input type="date" id="rescheduleDate">
+          </div>
+          <div class="form-group">
+            <label>Time:</label>
+            <input type="time" id="rescheduleTime">
+          </div>
+        </div>
+        <button class="btn-primary modal-save-btn" onclick="confirmReschedule()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARDS PAGE (formerly Analytics) -->
+  <div id="analytics" class="page" style="display:none">
+    <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <div class="dashboard-tabs" style="display: flex; gap: 40px;">
+        <button class="analytics-tab-btn active" data-tab="overview">Overview</button>
+        <button class="analytics-tab-btn" data-tab="product">In-depth</button>
+        <button class="analytics-tab-btn" data-tab="transactions">Transactions</button>
+      </div>
+    </div>
+
+    <div id="analyticsOverviewTab" class="analytics-tab-content active">
+      <div class="dashboard-filter-bar">
+        <div class="filter-pill-group">
+          <select id="anInterval" onchange="runDashboard()" class="filter-pill-select">
+            <option value="day">Daily</option>
+            <option value="week" selected>Weekly</option>
+            <option value="month">Monthly</option>
+            <option value="quarter">Quarterly</option>
+            <option value="annual">Annual</option>
+          </select>
+          <select id="anSource" onchange="runDashboard()" class="filter-pill-select">
+            <option value="all" selected>All Sources</option>
+            <option value="walkin">Walk-ins</option>
+            <option value="terminal">Customer Terminal</option>
+          </select>
+          <div class="date-input-group">
+            <input type="date" id="anStart" onchange="runDashboard()" class="filter-pill-date">
+            <span class="date-sep">to</span>
+            <input type="date" id="anEnd" onchange="runDashboard()" class="filter-pill-date">
+          </div>
+          <select id="catMode" onchange="runDashboard()" class="filter-pill-select">
+            <option value="amount" selected>By Amount</option>
+            <option value="quantity">By Quantity</option>
+          </select>
+        </div>
+        <button onclick="runDashboard()" class="refresh-pill-btn">Refresh</button>
+      </div>
+
+      <div class="dashboard-summary-bar">
+        <div class="summary-item">
+          <span class="summary-label">Total Sales:</span>
+          <span class="summary-value" id="kpiTotal">P 0</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Total Qnty:</span>
+          <span class="summary-value" id="kpiQty">0</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Avg/Day:</span>
+          <span class="summary-value" id="kpiAvg">P 0 /day</span>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <!-- Middle Row: 3 Charts -->
+        <div class="chart-card sales-trend-card">
+          <h3 class="chart-title">Sales Trend</h3>
+          <div class="canvas-container">
+            <canvas id="analyticsDescriptiveChart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card forecast-card">
+          <h3 class="chart-title">Forecast</h3>
+          <div class="canvas-container">
+            <canvas id="analyticsPredictiveChart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card time-analysis-card">
+          <h3 class="chart-title">Time-Based Analysis</h3>
+          <div class="canvas-container">
+            <canvas id="analyticsTimeAnalysisChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Bottom Row: 2 Sections -->
+        <div class="chart-card category-card">
+          <h3 class="chart-title">Sales by Category</h3>
+          <div class="category-layout">
+            <div id="categoryLegend" class="category-legend">
+              <!-- Legend items will be injected here -->
+            </div>
+            <div class="pie-container">
+              <canvas id="analyticsCategoryChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-card top-products-card">
+          <h3 class="chart-title">Top Products by Revenue</h3>
+          <div id="topProductsList" class="top-products-list">
+            <!-- Top products will be injected here -->
+          </div>
+          <div class="total-items-sold">
+            <span class="label">Total Items Sold:</span>
+            <span class="value" id="kpiQtyTopProducts">0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="analyticsProductTab" class="analytics-tab-content" style="display: none;">
+      <div class="dashboard-filter-bar">
+        <div class="filter-pill-group">
+          <select id="anProduct" onchange="runDashboard()" class="filter-pill-select">
+            <option value="">Select Product</option>
+          </select>
+          <select id="anIndepthInterval" onchange="runDashboard()" class="filter-pill-select">
+            <option value="day">Daily</option>
+            <option value="week" selected>Weekly</option>
+            <option value="month">Monthly</option>
+            <option value="quarter">Quarterly</option>
+            <option value="annual">Annual</option>
+          </select>
+          <div class="date-input-group">
+            <input type="date" id="anIndepthStart" onchange="runDashboard()" class="filter-pill-date">
+            <span class="date-sep">to</span>
+            <input type="date" id="anIndepthEnd" onchange="runDashboard()" class="filter-pill-date">
+          </div>
+        </div>
+        <button onclick="runDashboard()" class="refresh-pill-btn">Refresh</button>
+      </div>
+
+      <div class="indepth-grid">
+        <div class="chart-card overtime-card">
+          <h3 class="chart-title">Overtime</h3>
+          <div class="canvas-container">
+            <canvas id="analyticsProductTrendChart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card product-forecast-card">
+          <h3 class="chart-title">Product Forecast</h3>
+          <div class="canvas-container">
+            <canvas id="analyticsProductForecastChart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card top-products-card indepth-top-products">
+          <h3 class="chart-title">Top Products by Revenue</h3>
+          <div id="topProductsListIndepth" class="top-products-list">
+            <!-- Reuse or replicate top products logic -->
+          </div>
+          <div class="total-items-sold">
+            <span class="label">Total Items Sold:</span>
+            <span class="value" id="kpiQtyIndepth">0</span>
+          </div>
+        </div>
+
+        <div class="table-card indepth-table-card">
+          <table class="indepth-table">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Qty</th>
+                <th>APC</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody id="analyticsProductBodyIndepth">
+              <!-- Data will be injected here -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="recommendation-card">
+          <h3 class="chart-title">Predictive Recommendation</h3>
+          <div id="analyticsProductInsights" class="recommendation-content">
+            <!-- Recommendations will be injected here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="analyticsTransactionsTab" class="analytics-tab-content" style="display: none;">
+      <div class="dashboard-filter-bar">
+        <div class="filter-pill-group">
+          <select id="transInterval" onchange="resetTransactionDatesThenFetch()" class="filter-pill-select">
+            <option value="day">Daily</option>
+            <option value="week" selected>Weekly</option>
+            <option value="month">Monthly</option>
+            <option value="quarter">Quarterly</option>
+            <option value="annual">Annual</option>
+          </select>
+          <select id="transSource" onchange="fetchTransactions()" class="filter-pill-select">
+            <option value="all" selected>All Sources</option>
+            <option value="walkin">Walk-ins</option>
+            <option value="terminal">Customer Terminal</option>
+          </select>
+          <div class="date-input-group">
+            <input type="date" id="transStart" onchange="fetchTransactions()" class="filter-pill-date">
+            <span class="date-sep">to</span>
+            <input type="date" id="transEnd" onchange="fetchTransactions()" class="filter-pill-date">
+          </div>
+        </div>
+        <button onclick="downloadTransactionsCSV()" class="csv-button">CSV</button>
+      </div>
+
+      <div class="dashboard-summary-bar transactions-summary-bar">
+        <div class="summary-item">
+          <span class="summary-label">Total Sales:</span>
+          <span class="summary-value" id="transKpiTotal">P 0</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Total Qnty:</span>
+          <span class="summary-value" id="transKpiQty">0</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Avg/Day:</span>
+          <span class="summary-value" id="transKpiAvg">P 0 /day</span>
+        </div>
+      </div>
+
+      <div class="transactions-table-card">
+        <table class="transactions-table">
+          <thead>
+            <tr>
+              <th id="transTableHeadDate">Date</th>
+              <th>Total Item Count</th>
+              <th>Products</th>
+              <th>Total Sold</th>
+            </tr>
+          </thead>
+          <tbody id="transactionsListTable">
+            <!-- Transactions will be injected here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- SALES PAGE -->
+  <div id="sales" class="page" style="display:none">
+    <div class="page-header">
+      <h2>Sales Management</h2>
+      <p class="description">Review and export detailed sales records.</p>
+    </div>
+    
+    <div class="sales-tabs">
+      <button onclick="showSalesTab('overall')" id="tabSalesOverall" class="sales-tab active">Overall Sales</button>
+      <button onclick="showSalesTab('products')" id="tabSalesProducts" class="sales-tab">Product Performance</button>
+    </div>
+
+    <div id="salesOverallPanel" class="sales-panel">
+      <div class="form-section">
+        <div class="form-row">
+          <select id="salesMode" onchange="renderSales()">
+            <option value="day" selected>By Day</option>
+            <option value="week">By Week</option>
+            <option value="month">By Month</option>
+            <option value="quarter">By Quarter</option>
+            <option value="semiannual">By Semi-Annual</option>
+            <option value="annual">By Annual</option>
+          </select>
+          <input type="date" id="salesStart" placeholder="Start Date" onchange="renderSales()">
+          <input type="date" id="salesEnd" placeholder="End Date" onchange="renderSales()">
+          <button onclick="downloadSalesCSV()" class="btn-secondary">Download CSV</button>
+        </div>
+      </div>
+      <table id="salesTable">
+        <thead>
+          <tr id="salesHeadRow"></tr>
+        </thead>
+        <tbody id="salesBody"></tbody>
+      </table>
+    </div>
+
+    <div id="salesProductsPanel" class="sales-panel" style="display:none;">
+      <div class="form-section">
+        <div class="form-row">
+          <select id="productSalesMode" onchange="handleProductSalesModeChange()">
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="custom" selected>Custom Range</option>
+          </select>
+          <input type="date" id="productSalesStart" onchange="renderProductSales()">
+          <input type="date" id="productSalesEnd" onchange="renderProductSales()">
+          <button onclick="renderProductSales()" class="btn-primary">Refresh</button>
+          <button onclick="downloadProductSalesCSV()" class="btn-secondary">Download CSV</button>
+        </div>
+      </div>
+      <table id="productSalesTable">
+        <thead>
+          <tr>
+            <th style="text-align: left;">Date</th>
+            <th style="text-align: left;">Product Name</th>
+            <th style="text-align: center;">Quantity Sold</th>
+            <th style="text-align: right;">Total Amount</th>
+          </tr>
+        </thead>
+        <tbody id="productSalesBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- REPORTS PAGE -->
+  <div id="reports" class="page" style="display:none">
+    <div class="page-header">
+      <h2>Sales Reports</h2>
+      <p class="description">Generate and download sales transaction reports.</p>
+    </div>
+    <div class="form-section">
+      <div class="form-row">
+        <div class="report-type-label" style="font-weight:700; padding: 12px 0;">By Transaction</div>
+        <input type="date" id="repStart" placeholder="Start Date" onchange="renderReports()">
+        <input type="date" id="repEnd" placeholder="End Date" onchange="renderReports()">
+        <button onclick="downloadReportsCSV()" class="btn-secondary">Download CSV</button>
+      </div>
+      
+      <!-- Report KPIs -->
+      <div class="analytics-kpis" style="margin-top:20px; padding-top:20px; border-top:1px solid #eee;">
+        <div class="kpi-card">
+          <div class="kpi-label">Total Sales</div>
+          <div class="kpi-value" id="repKpiTotal">₱0.00</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label" id="repKpiLabel2">Total Transactions</div>
+          <div class="kpi-value" id="repKpiValue2">0</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label" id="repKpiLabel3">Avg Transaction</div>
+          <div class="kpi-value" id="repKpiValue3">₱0.00</div>
+        </div>
+      </div>
+    </div>
+    
+    <h3 id="repTableTitle">Transaction Log</h3>
+    <table id="repItem">
+      <thead id="repItemHead">
+        <tr><th>Date</th><th>Order ID</th><th>Items Count</th><th>Total Amount</th><th>Status</th></tr>
+      </thead>
+      <tbody id="repItemBody"></tbody>
+    </table>
+  </div>
+  </main>
+  </div>
+
+  <script type="module" src="admin.main.js?v=4"></script>
+  <script src="admin-analytics.js?v=4"></script>
+
+  <script>
+    // Helper functions (getWeekKey, etc.) are available globally from admin-analytics.js
+  </script>
+</body>
+</html>

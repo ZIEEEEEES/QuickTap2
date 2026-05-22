@@ -1,0 +1,564 @@
+/* Hiding number input arrows/spinners */
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+    -webkit-appearance: none; 
+    margin: 0; 
+}
+input[type=number] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.error {
+    color: var(--danger);
+    font-weight: 600;
+    margin-top: 5px;
+}
+
+.success {
+    color: var(--success);
+    font-weight: 600;
+    margin-top: 5px;
+}
+
+/* ========================================
+   COFFEE-THEMED DASHBOARD DESIGN SYSTEM
+   FAUGET PREMIUM COFFEE SHOP AESTHETIC
+   ======================================== */
+
+:root {
+  /* Premium dark & gold color palette */
+  --coffee-dark: #74512D; /* Dark Brown */
+  --coffee-medium: #967658; /* Medium Brown */
+  --coffee-light: #AF8F6F; /* Tan/Brown */
+  --cream: #F8F4E1; /* Cream/Light background */
+  --accent-warm: #AF8F6F; /* Tan/Brown */
+  --accent-gold: #AF8F6F; /* Consistent gold */
+  --sidebar-bg: #543310; /* Very Dark Brown */
+  --success: #5fb878; /* Soft green */
+  --warning: #967658; /* Medium Brown */
+  --danger: #d9534f; /* Soft red */
+  --text-dark: #543310; /* Very Dark Brown */
+  --text-light: #F8F4E1; /* Cream/Light background */
+  --bg-light: #F8F4E1; /* Cream/Light background */
+  --bg-secondary: #AF8F6F; /* Tan/Brown */
+  --border-color: #74512D; /* Dark Brown */
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Inter", sans-serif;
+  background: var(--bg-light);
+  color: var(--text-dark);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ========================================
+   HEADER & TYPOGRAPHY
+   ======================================== */
+
+h1 {
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--coffee-dark);
+}
+
+h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--coffee-dark);
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  display: inline-block;
+  letter-spacing: 0.5px;
+}
+
+h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--coffee-dark);
+  margin-bottom: 12px;
+}
+
+/* ========================================
+   NAVIGATION
+   ======================================== */
+
+nav {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 30px;
+  background: var(--coffee-dark);
+  padding: 18px 24px;
+  border-radius: 0px;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+}
+
+nav button {
+  padding: 14px 24px;
+  background: var(--coffee-dark);
+  color: var(--cream);
+  border: 2px solid var(--accent-warm);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  flex: 1;
+  min-width: 140px;
+  text-align: center;
+}
+
+nav button:hover,
+nav button.active {
+  background: var(--accent-warm);
+  color: var(--coffee-dark);
+  transform: translateY(-2px);
+}
+
+nav button:focus-visible {
+  outline: 2px solid var(--accent-warm);
+  outline-offset: 2px;
+}
+
+/* ========================================
+   FORMS & INPUTS
+   ======================================== */
+
+input,
+select,
+textarea {
+  padding: 13px 15px;
+  margin: 8px 6px;
+  border-radius: 8px;
+  border: 2px solid var(--border-color);
+  background: var(--cream);
+  color: var(--text-dark);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--accent-warm);
+  box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.1);
+}
+
+/* ========================================
+   BUTTONS
+   ======================================== */
+
+button {
+  cursor: pointer;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: var(--accent-warm);
+  color: var(--coffee-dark);
+  padding: 13px 24px;
+}
+
+.btn-primary:hover {
+  background: #c89968;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(212, 165, 116, 0.25);
+}
+
+.btn-secondary {
+  background: var(--coffee-medium);
+  color: #ffffff;
+  padding: 13px 24px;
+}
+
+.btn-secondary:hover {
+  background: var(--coffee-dark);
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: #ffffff;
+  padding: 13px 24px;
+}
+
+.btn-danger:hover {
+  background: #d63a33;
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+.btn-warning {
+  background: var(--warning);
+  color: #ffffff;
+  padding: 13px 24px;
+}
+
+.btn-warning:hover {
+  filter: brightness(0.9);
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+.btn-success {
+  background: var(--success);
+  color: #ffffff;
+  padding: 13px 24px;
+}
+
+.btn-success:hover {
+  filter: brightness(0.9);
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+.btn-small {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+.btn-switch {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: var(--coffee-dark);
+  color: var(--accent-gold);
+  border: 2px solid var(--accent-gold);
+  padding: 10px 20px;
+  border-radius: 25px;
+  font-weight: 700;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+.btn-switch:hover {
+  background: var(--accent-gold);
+  color: var(--coffee-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(212, 165, 116, 0.4);
+}
+
+.btn-switch i {
+  font-size: 16px;
+}
+
+.btn-large {
+  padding: 16px 32px;
+  font-size: 16px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+/* ========================================
+   CARDS & CONTAINERS
+   ======================================== */
+
+.card {
+  background: var(--cream);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+/* ========================================
+   TABLES
+   ======================================== */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+  background: var(--cream);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+table thead {
+  background: var(--coffee-dark);
+  color: var(--cream);
+}
+
+table th {
+  padding: 14px;
+  text-align: left;
+  font-weight: 600;
+  border: none;
+}
+
+table td {
+  padding: 14px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-dark);
+}
+
+table tbody tr:hover {
+  background: rgba(212, 165, 116, 0.05);
+}
+
+table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ========================================
+   UTILITY CLASSES
+   ======================================== */
+
+.text-center {
+  text-align: center;
+}
+
+.mt-20 {
+  margin-top: 20px;
+}
+
+.mb-20 {
+  margin-bottom: 20px;
+}
+
+.success-msg {
+  color: var(--success);
+  font-weight: 600;
+}
+
+.error-msg {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+/* ========================================
+   LOYALTY STAMP CARD
+   ======================================== */
+
+.stamp-card-container {
+  background: linear-gradient(135deg, rgba(212, 165, 116, 0.08), rgba(212, 165, 116, 0.04));
+  border: 2px solid rgba(212, 165, 116, 0.3);
+  border-radius: 12px;
+  padding: 24px;
+  margin: 24px 0;
+}
+
+.stamp-card-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.stamp-card-header h4 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--coffee-dark);
+  margin: 0 0 8px 0;
+  letter-spacing: 0.5px;
+}
+
+.stamp-card-header p {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--accent-warm);
+  margin: 0;
+}
+
+.stamp-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin: 0;
+}
+
+.stamp-slot {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--text-light);
+  cursor: default;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.stamp-slot:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.5), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.stamp-slot.filled {
+  background: linear-gradient(135deg, var(--accent-warm), #c89968);
+  border-color: #b89058;
+  color: white;
+  box-shadow: 0 4px 12px rgba(212, 165, 116, 0.2);
+  animation: stampPop 0.5s ease-out;
+}
+
+@keyframes stampPop {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.stamp-slot.filled:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(212, 165, 116, 0.3);
+}
+
+.stamp-slot.filled .stamp-icon {
+  font-size: 32px;
+  display: block;
+  animation: stampBounce 0.6s ease-out;
+}
+
+@keyframes stampBounce {
+  0% {
+    transform: scale(0) rotate(-180deg);
+  }
+  60% {
+    transform: scale(1.1) rotate(10deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.stamp-slot.free-drink {
+  border: 3px solid var(--accent-warm);
+  background: linear-gradient(135deg, rgba(212, 165, 116, 0.15), rgba(212, 165, 116, 0.08));
+  color: var(--accent-warm);
+  font-weight: 800;
+}
+
+.stamp-slot.free-drink .stamp-icon {
+  font-size: 36px;
+  filter: drop-shadow(0 2px 4px rgba(212, 165, 116, 0.3));
+}
+
+.stamp-slot.free-drink.redeemable {
+  background: linear-gradient(135deg, var(--accent-warm), rgba(212, 165, 116, 0.6));
+  border-color: #b89058;
+  box-shadow: 0 4px 12px rgba(212, 165, 116, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  animation: redeemablePulse 2s ease-in-out infinite;
+}
+
+@keyframes redeemablePulse {
+  0%,
+  100% {
+    box-shadow: 0 4px 12px rgba(212, 165, 116, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+  50% {
+    box-shadow: 0 6px 20px rgba(212, 165, 116, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+}
+
+.stamp-icon {
+  display: inline-block;
+  font-size: 24px;
+  line-height: 1;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Empty/unavailable stamp styling */
+.stamp-slot:not(.filled):not(.free-drink) {
+  color: var(--text-light);
+  font-size: 14px;
+  font-weight: 600;
+  background: #f8f8f8;
+  border-color: #e0e0e0;
+}
+
+.stamp-slot:not(.filled):not(.free-drink):hover {
+  border-color: var(--border-color);
+  background: #fff;
+}
+
+/* Responsive stamp grid */
+@media (max-width: 768px) {
+  .stamp-grid {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+  }
+
+  .stamp-slot {
+    font-size: 16px;
+  }
+
+  .stamp-slot.filled .stamp-icon {
+    font-size: 28px;
+  }
+
+  .stamp-slot.free-drink .stamp-icon {
+    font-size: 32px;
+  }
+}
+
+@media (max-width: 480px) {
+  .stamp-card-container {
+    padding: 16px;
+  }
+
+  .stamp-grid {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+  }
+
+  .stamp-slot {
+    font-size: 14px;
+  }
+
+  .stamp-slot.filled .stamp-icon {
+    font-size: 24px;
+  }
+
+  .stamp-slot.free-drink .stamp-icon {
+    font-size: 28px;
+  }
+}
